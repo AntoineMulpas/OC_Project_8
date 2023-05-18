@@ -9,7 +9,6 @@ import java.util.UUID;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import gpsUtil.GpsUtil;
 import gpsUtil.location.Attraction;
 import gpsUtil.location.VisitedLocation;
 import rewardCentral.RewardCentral;
@@ -18,6 +17,7 @@ import tourGuide.service.RewardsService;
 import tourGuide.service.TourGuideService;
 import tourGuide.user.User;
 import tourGuide.user.UserReward;
+import tourGuide.utils.GpsUtil;
 
 public class TestRewardsService {
 

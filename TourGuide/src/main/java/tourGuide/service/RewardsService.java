@@ -4,23 +4,23 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import gpsUtil.GpsUtil;
 import gpsUtil.location.Attraction;
 import gpsUtil.location.Location;
 import gpsUtil.location.VisitedLocation;
 import rewardCentral.RewardCentral;
 import tourGuide.user.User;
 import tourGuide.user.UserReward;
+import tourGuide.utils.GpsUtil;
 
 @Service
 public class RewardsService {
     private static final double STATUTE_MILES_PER_NAUTICAL_MILE = 1.15077945;
 
 	// proximity in miles
-    private int defaultProximityBuffer = 10;
-	private int proximityBuffer = defaultProximityBuffer;
-	private int attractionProximityRange = 200;
-	private final GpsUtil gpsUtil;
+    private       int           defaultProximityBuffer = 10;
+	private       int           proximityBuffer = defaultProximityBuffer;
+	private       int           attractionProximityRange = 200;
+	private final GpsUtil       gpsUtil;
 	private final RewardCentral rewardsCentral;
 	
 	public RewardsService(GpsUtil gpsUtil, RewardCentral rewardCentral) {
