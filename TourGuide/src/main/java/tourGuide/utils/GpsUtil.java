@@ -18,14 +18,14 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 public class GpsUtil {
-    private static final RateLimiter rateLimiter = RateLimiter.create(1000.0);
+    private static final RateLimiter rateLimiter = RateLimiter.create(3000.0);
 
     public GpsUtil() {
     }
 
     public VisitedLocation getUserLocation(UUID userId) {
         rateLimiter.acquire();
-        this.sleep();
+        //this.sleep();
         double longitude = ThreadLocalRandom.current().nextDouble(-180.0, 180.0);
         double latitude = ThreadLocalRandom.current().nextDouble(-85.05112878, 85.05112878);
         VisitedLocation visitedLocation = new VisitedLocation(userId, new Location(latitude, longitude), new Date());
@@ -34,7 +34,7 @@ public class GpsUtil {
 
     public List<Attraction> getAttractions() {
         rateLimiter.acquire();
-        this.sleepLighter();
+        //this.sleepLighter();
         List<Attraction> attractions = new ArrayList();
         attractions.add(new Attraction("Disneyland", "Anaheim", "CA", 33.817595, -117.922008));
         attractions.add(new Attraction("Jackson Hole", "Jackson Hole", "WY", 43.582767, -110.821999));
