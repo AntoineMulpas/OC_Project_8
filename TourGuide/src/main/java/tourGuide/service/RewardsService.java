@@ -1,8 +1,6 @@
 package tourGuide.service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.springframework.stereotype.Service;
 
@@ -47,31 +45,23 @@ public class RewardsService {
 		Map <Double, Attraction> map = new HashMap <>();
 		attractions.forEach(attraction -> map.put(attraction.longitude, attraction));
 
-		for (VisitedLocation visitedLocation : userLocations) {
-			double longitude = visitedLocation.location.longitude;
-			if (user.getUserRewards().stream().noneMatch(r -> map.containsKey(r.attraction.longitude))) {
-				Attraction attraction = map.get(longitude);
-				if (attraction != null) {
-					if (nearAttraction(visitedLocation, attraction)) {
-						user.addUserReward(new UserReward(visitedLocation, map.get(longitude), getRewardPoints(map.get(longitude), user)));
+
+			Iterator <VisitedLocation> iterator = userLocations.iterator();
+			while (iterator.hasNext()) {
+				VisitedLocation visitedLocation = iterator.next();
+				double longitude = visitedLocation.location.longitude;
+				if (user.getUserRewards().stream().noneMatch(r -> map.containsKey(r.attraction.longitude))) {
+					Attraction attraction = map.get(longitude);
+					if (attraction != null) {
+						if (nearAttraction(visitedLocation, attraction)) {
+							user.addUserReward(new UserReward(visitedLocation, map.get(longitude), getRewardPoints(map.get(longitude), user)));
+						}
 					}
 				}
 			}
-		}
 
-		/*
 
-		for(VisitedLocation visitedLocation : userLocations) {
-			for(Attraction attraction : attractions) {
-				if(user.getUserRewards().stream().noneMatch(r -> r.attraction.attractionName.equals(attraction.attractionName))) {
-					if(nearAttraction(visitedLocation, attraction)) {
-						user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
-					}
-				}
-			}
-		}
 
-		 */
 	}
 
 	public boolean isWithinAttractionProximity(Attraction attraction, Location location) {
@@ -96,8 +86,7 @@ public class RewardsService {
                                + Math.cos(lat1) * Math.cos(lat2) * Math.cos(lon1 - lon2));
 
         double nauticalMiles = 60 * Math.toDegrees(angle);
-        double statuteMiles = STATUTE_MILES_PER_NAUTICAL_MILE * nauticalMiles;
-        return statuteMiles;
+		return STATUTE_MILES_PER_NAUTICAL_MILE * nauticalMiles;
 	}
 
 }
