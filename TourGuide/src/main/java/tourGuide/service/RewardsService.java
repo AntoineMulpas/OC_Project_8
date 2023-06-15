@@ -10,17 +10,17 @@ import gpsUtil.location.VisitedLocation;
 import rewardCentral.RewardCentral;
 import tourGuide.user.User;
 import tourGuide.user.UserReward;
-import tourGuide.utils.GpsUtil;
+import tourGuide.util.GpsUtil;
 
 @Service
 public class RewardsService {
     private static final double STATUTE_MILES_PER_NAUTICAL_MILE = 1.15077945;
 
 	// proximity in miles
-    private final int defaultProximityBuffer = 10;
-	private int proximityBuffer = defaultProximityBuffer;
-	private final int attractionProximityRange = 200;
-	private final GpsUtil gpsUtil;
+    private final int           defaultProximityBuffer = 10;
+	private       int           proximityBuffer = defaultProximityBuffer;
+	private final int           attractionProximityRange = 200;
+	private final GpsUtil       gpsUtil;
 	private final RewardCentral rewardsCentral;
 
 	public RewardsService(GpsUtil gpsUtil, RewardCentral rewardCentral) {
@@ -45,23 +45,19 @@ public class RewardsService {
 		Map <Double, Attraction> map = new HashMap <>();
 		attractions.forEach(attraction -> map.put(attraction.longitude, attraction));
 
-
-			Iterator <VisitedLocation> iterator = userLocations.iterator();
-			while (iterator.hasNext()) {
-				VisitedLocation visitedLocation = iterator.next();
-				double longitude = visitedLocation.location.longitude;
-				if (user.getUserRewards().stream().noneMatch(r -> map.containsKey(r.attraction.longitude))) {
-					Attraction attraction = map.get(longitude);
-					if (attraction != null) {
-						if (nearAttraction(visitedLocation, attraction)) {
-							user.addUserReward(new UserReward(visitedLocation, map.get(longitude), getRewardPoints(map.get(longitude), user)));
-						}
+		Iterator <VisitedLocation> iterator = userLocations.iterator();
+		while (iterator.hasNext()) {
+			VisitedLocation visitedLocation = iterator.next();
+			double longitude = visitedLocation.location.longitude;
+			if (user.getUserRewards().stream().noneMatch(r -> map.containsKey(r.attraction.longitude))) {
+				Attraction attraction = map.get(longitude);
+				if (attraction != null) {
+					if (nearAttraction(visitedLocation, attraction)) {
+						user.addUserReward(new UserReward(visitedLocation, map.get(longitude), getRewardPoints(map.get(longitude), user)));
 					}
 				}
 			}
-
-
-
+		}
 	}
 
 	public boolean isWithinAttractionProximity(Attraction attraction, Location location) {

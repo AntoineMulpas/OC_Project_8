@@ -17,7 +17,7 @@ import tourGuide.service.RewardsService;
 import tourGuide.service.TourGuideService;
 import tourGuide.user.User;
 import tourGuide.user.UserReward;
-import tourGuide.utils.GpsUtil;
+import tourGuide.util.GpsUtil;
 
 public class TestRewardsService {
 

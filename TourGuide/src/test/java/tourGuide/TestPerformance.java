@@ -9,11 +9,12 @@ import tourGuide.helper.InternalTestHelper;
 import tourGuide.service.RewardsService;
 import tourGuide.service.TourGuideService;
 import tourGuide.user.User;
-import tourGuide.utils.GpsUtil;
+import tourGuide.util.GpsUtil;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertTrue;
@@ -45,22 +46,43 @@ public class TestPerformance {
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
 		// Users should be incremented up to 100,000, and test finishes within 15 minutes
-		InternalTestHelper.setInternalUserNumber(100000);
+		InternalTestHelper.setInternalUserNumber(100_000);
 		TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
 
 		List <User> allUsers = tourGuideService.getAllUsers();
 		
 	    StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
+
+		ExecutorService service = Executors.newFixedThreadPool(15);
+
+
 		for(User user : allUsers) {
-			tourGuideService.trackUserLocation(user);
+			service.execute(() -> tourGuideService.trackUserLocation(user));
+			//tourGuideService.trackUserLocation(user);
 		}
+
+		service.shutdown();
+
+		try {
+			// Wait for all threads to complete
+			service.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+
+			// All threads have completed, display the message
+			System.out.println("All threads have completed.");
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
 		stopWatch.stop();
 		tourGuideService.tracker.stopTracking();
 
 		System.out.println("highVolumeTrackLocation: Time Elapsed: " + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds."); 
 		assertTrue(TimeUnit.MINUTES.toSeconds(15) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
 	}
+
+	/* TODO: Refactor method below.
+	 */
 	
 	@Test
 	public void highVolumeGetRewards() {
@@ -68,18 +90,31 @@ public class TestPerformance {
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
 
 		// Users should be incremented up to 100,000, and test finishes within 20 minutes
-		InternalTestHelper.setInternalUserNumber(100);
+		InternalTestHelper.setInternalUserNumber(100_000);
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
 		TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
 		
 	    Attraction attraction = gpsUtil.getAttractions().get(0);
-		List<User> allUsers = new ArrayList<>();
-		allUsers = tourGuideService.getAllUsers();
+		List <User> allUsers = tourGuideService.getAllUsers();
 		allUsers.forEach(u -> u.addToVisitedLocations(new VisitedLocation(u.getUserId(), attraction, new Date())));
-	     
-	    allUsers.forEach(u -> rewardsService.calculateRewards(u));
-	    
+
+		ExecutorService service = Executors.newFixedThreadPool(15);
+
+	    allUsers.forEach(u -> service.execute(() -> rewardsService.calculateRewards(u)));
+
+		service.shutdown();
+
+		try {
+			// Wait for all threads to complete
+			service.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+
+			// All threads have completed, display the message
+			System.out.println("All threads have completed.");
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
 		for(User user : allUsers) {
 			assertTrue(user.getUserRewards().size() > 0);
 		}

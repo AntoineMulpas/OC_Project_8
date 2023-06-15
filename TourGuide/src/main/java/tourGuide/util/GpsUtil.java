@@ -1,4 +1,4 @@
-package tourGuide.utils;
+package tourGuide.util;
 
 //
 // Source code recreated from a .class file by IntelliJ IDEA
@@ -10,6 +10,8 @@ import com.google.common.util.concurrent.RateLimiter;
 import gpsUtil.location.Attraction;
 import gpsUtil.location.Location;
 import gpsUtil.location.VisitedLocation;
+
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -18,23 +20,25 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 public class GpsUtil {
-    private static final RateLimiter rateLimiter = RateLimiter.create(3000.0);
+    private static final RateLimiter rateLimiter = RateLimiter.create(1000.0);
 
     public GpsUtil() {
     }
 
     public VisitedLocation getUserLocation(UUID userId) {
         rateLimiter.acquire();
-        //this.sleep();
+        this.sleep();
         double longitude = ThreadLocalRandom.current().nextDouble(-180.0, 180.0);
+        longitude = Double.parseDouble(String.format("%.6f", longitude).replace(",", "."));
         double latitude = ThreadLocalRandom.current().nextDouble(-85.05112878, 85.05112878);
+        latitude = Double.parseDouble(String.format("%.6f", latitude).replace(",", "."));
         VisitedLocation visitedLocation = new VisitedLocation(userId, new Location(latitude, longitude), new Date());
         return visitedLocation;
     }
 
     public List<Attraction> getAttractions() {
         rateLimiter.acquire();
-        //this.sleepLighter();
+        this.sleepLighter();
         List<Attraction> attractions = new ArrayList();
         attractions.add(new Attraction("Disneyland", "Anaheim", "CA", 33.817595, -117.922008));
         attractions.add(new Attraction("Jackson Hole", "Jackson Hole", "WY", 43.582767, -110.821999));

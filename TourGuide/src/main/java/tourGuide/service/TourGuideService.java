@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
@@ -23,7 +22,7 @@ import tourGuide.helper.InternalTestHelper;
 import tourGuide.tracker.Tracker;
 import tourGuide.user.User;
 import tourGuide.user.UserReward;
-import tourGuide.utils.GpsUtil;
+import tourGuide.util.GpsUtil;
 import tripPricer.Provider;
 import tripPricer.TripPricer;
 
