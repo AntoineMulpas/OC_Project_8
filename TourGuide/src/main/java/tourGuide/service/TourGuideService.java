@@ -1,23 +1,11 @@
 package tourGuide.service;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
-import java.util.stream.IntStream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
 import gpsUtil.location.Attraction;
 import gpsUtil.location.Location;
 import gpsUtil.location.VisitedLocation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 import tourGuide.helper.InternalTestHelper;
 import tourGuide.tracker.Tracker;
 import tourGuide.user.User;
@@ -25,6 +13,14 @@ import tourGuide.user.UserReward;
 import tourGuide.util.GpsUtil;
 import tripPricer.Provider;
 import tripPricer.TripPricer;
+
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 
 @Service
 public class TourGuideService {
@@ -48,10 +44,24 @@ public class TourGuideService {
 		tracker = new Tracker(this);
 		addShutDownHook();
 	}
+
+	/**
+	 * This method is used to get the reward concerning a specific user.
+	 * @param user
+	 * @return
+	 */
 	
 	public List<UserReward> getUserRewards(User user) {
 		return user.getUserRewards();
 	}
+
+	/**
+	 * This method is used to get the current user location.
+	 * If user has already a visited location, then the method returns it.
+	 * Otherwise, it tracks the current user position and returns it.
+	 * @param user
+	 * @return
+	 */
 	
 	public VisitedLocation getUserLocation(User user) {
 		VisitedLocation visitedLocation = (user.getVisitedLocations().size() > 0) ?
@@ -59,20 +69,48 @@ public class TourGuideService {
 			trackUserLocation(user);
 		return visitedLocation;
 	}
-	
+
+	/**
+	 * This method is user for testing purpose. It returns a specific user
+	 * from username.
+	 * Note: the user is randomly generated.
+	 * @param userName
+	 * @return
+	 */
+
 	public User getUser(String userName) {
 		return internalUserMap.get(userName);
 	}
+
+	/**
+	 * This method is used for testing purpose, it returns a List of all users.
+	 * Note: the List of all users is generated randomly.
+	 * @return
+	 */
 	
 	public List<User> getAllUsers() {
 		return new ArrayList <>(internalUserMap.values());
 	}
+
+	/**
+	 * This method is user to add a new user.
+	 * Note: the user is added to a Map which is used to testing purpose.
+	 * @param user
+	 */
 	
 	public void addUser(User user) {
 		if(!internalUserMap.containsKey(user.getUserName())) {
 			internalUserMap.put(user.getUserName(), user);
 		}
 	}
+
+	/**
+	 * This method is used to set the list of provider a user is associated with.
+	 * According to several parameters (such as numbers of children, adults, trip duration and already cumulated reward points)
+	 * the method is setting a list of Provider to a user.
+	 * @param user
+	 * @return
+	 */
 	
 	public List<Provider> getTripDeals(User user) {
 		int cumulatativeRewardPoints = user.getUserRewards().stream().mapToInt(UserReward::getRewardPoints).sum();
@@ -81,6 +119,37 @@ public class TourGuideService {
 		user.setTripDeals(providers);
 		return providers;
 	}
+
+	/* TODO : write document of this method, which is currently being tested.
+
+	 */
+
+	public Map<UUID, VisitedLocation> trackAllUsersLocation(List<User> userList) {
+		ExecutorService service = Executors.newFixedThreadPool(30);
+		Map<UUID, VisitedLocation> userVisitedLocationMap = new HashMap<>();
+		try {
+		for (User user : userList) {
+			service.execute(() -> {
+				VisitedLocation visitedLocation = trackUserLocation(user);
+				userVisitedLocationMap.put(user.getUserId(), visitedLocation);
+			});
+		}
+			service.shutdown();
+			service.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+			System.out.println("All threads have completed");
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		return userVisitedLocationMap;
+	}
+
+	/**
+	 * This method is used to track the user location.
+	 * It also calls the 'calculateRewards' method from 'rewardsService' to calculte the reward associated
+	 * with the current user.
+	 * @param user
+	 * @return
+	 */
 	
 	public VisitedLocation trackUserLocation(User user) {
 		VisitedLocation visitedLocation = gpsUtil.getUserLocation(user.getUserId());
@@ -88,6 +157,13 @@ public class TourGuideService {
 		rewardsService.calculateRewards(user);
 		return visitedLocation;
 	}
+
+	/**
+	 * This method is used to get the attraction close to the user location
+	 * (represented by the object VisitedLocation).
+	 * @param visitedLocation
+	 * @return
+	 */
 
 	public List<Attraction> getNearByAttractions(VisitedLocation visitedLocation) {
 		List<Attraction> nearbyAttractions = new ArrayList<>();
@@ -99,6 +175,10 @@ public class TourGuideService {
 		
 		return nearbyAttractions;
 	}
+
+	/**
+	 * This method is used to shut down the tracker.
+	 */
 	
 	private void addShutDownHook() {
 		Runtime.getRuntime().addShutdownHook(new Thread() { 
