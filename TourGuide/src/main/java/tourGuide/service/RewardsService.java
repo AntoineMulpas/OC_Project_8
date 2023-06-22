@@ -70,7 +70,7 @@ public class RewardsService {
 	public void calculateRewards(User user) {
 			List <VisitedLocation> userLocations = new ArrayList <>();
 
-			if (user.getVisitedLocations().size() != 0) {
+			if (user != null && user.getVisitedLocations().size() != 0) {
 				userLocations.addAll(user.getVisitedLocations());
 			} else {
 				userLocations.add(new VisitedLocation(new UUID(123L, 12L), new Location(12330, 1233), new Date()));
