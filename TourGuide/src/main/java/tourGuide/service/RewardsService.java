@@ -25,7 +25,7 @@ public class RewardsService {
 	private final int           attractionProximityRange = 200;
 	private final GpsUtil       gpsUtil;
 	private final RewardCentral rewardsCentral;
-	private final Map <Double, Attraction> map = new HashMap <>();
+	private List<Attraction> attractions;
 
 
 
@@ -44,14 +44,16 @@ public class RewardsService {
 
 
 	public List<User> calculateRewardsForAllUsers(List<User> userList) {
-		gpsUtil.getAttractions().forEach(attraction -> map.put(attraction.longitude, attraction));
+		getAttractions();
+
 		List<User> listToReturn = new ArrayList<>();
 		ExecutorService service = Executors.newFixedThreadPool(30);
 		try {
 		for (User user : userList) {
 			service.execute(() -> {
-				calculateRewards(user);
-				listToReturn.add(user);
+				if (user != null) {
+					listToReturn.add(calculateRewards(user));
+				}
 			});
 		}
 		service.shutdown();
@@ -62,10 +64,29 @@ public class RewardsService {
 		return listToReturn;
 	}
 
+	private void getAttractions() {
+		attractions = gpsUtil.getAttractions();
+	}
+
+
 	/* TODO: Change usersLocation instantiation condition.
 
 	 */
 
+	public User calculateRewards(User user) {
+		List<VisitedLocation> userLocations = user.getVisitedLocations();
+
+		for(VisitedLocation visitedLocation : userLocations) {
+			for(Attraction attraction : attractions) {
+				if(user.getUserRewards().stream().noneMatch(r -> r.attraction.attractionName.equals(attraction.attractionName))) {
+					if(nearAttraction(visitedLocation, attraction)) {
+						user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
+					}
+				}
+			}
+		}
+		return user;
+	}
 
 	public void calculateRewards(User user) {
 			List <VisitedLocation> userLocations = new ArrayList <>();
