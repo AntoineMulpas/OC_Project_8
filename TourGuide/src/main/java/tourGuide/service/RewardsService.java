@@ -1,6 +1,9 @@
 package tourGuide.service;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.stereotype.Service;
 
@@ -22,6 +25,9 @@ public class RewardsService {
 	private final int           attractionProximityRange = 200;
 	private final GpsUtil       gpsUtil;
 	private final RewardCentral rewardsCentral;
+	private final Map <Double, Attraction> map = new HashMap <>();
+
+
 
 	public RewardsService(GpsUtil gpsUtil, RewardCentral rewardCentral) {
 		this.gpsUtil = gpsUtil;
@@ -37,28 +43,55 @@ public class RewardsService {
 	}
 
 
-	// SHOULD REFACTOR FOR PERFORMANCE
+	public List<User> calculateRewardsForAllUsers(List<User> userList) {
+		gpsUtil.getAttractions().forEach(attraction -> map.put(attraction.longitude, attraction));
+		List<User> listToReturn = new ArrayList<>();
+		ExecutorService service = Executors.newFixedThreadPool(30);
+		try {
+		for (User user : userList) {
+			service.execute(() -> {
+				calculateRewards(user);
+				listToReturn.add(user);
+			});
+		}
+		service.shutdown();
+		service.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		return listToReturn;
+	}
+
+	/* TODO: Change usersLocation instantiation condition.
+
+	 */
+
+
 	public void calculateRewards(User user) {
-		List<VisitedLocation> userLocations = user.getVisitedLocations();
-		List<Attraction> attractions = gpsUtil.getAttractions();
+			List <VisitedLocation> userLocations = new ArrayList <>();
 
-		Map <Double, Attraction> map = new HashMap <>();
-		attractions.forEach(attraction -> map.put(attraction.longitude, attraction));
+			if (user.getVisitedLocations().size() != 0) {
+				userLocations.addAll(user.getVisitedLocations());
+			} else {
+				userLocations.add(new VisitedLocation(new UUID(123L, 12L), new Location(12330, 1233), new Date()));
+			}
 
-		Iterator <VisitedLocation> iterator = userLocations.iterator();
-		while (iterator.hasNext()) {
-			VisitedLocation visitedLocation = iterator.next();
-			double longitude = visitedLocation.location.longitude;
-			if (user.getUserRewards().stream().noneMatch(r -> map.containsKey(r.attraction.longitude))) {
-				Attraction attraction = map.get(longitude);
-				if (attraction != null) {
-					if (nearAttraction(visitedLocation, attraction)) {
-						user.addUserReward(new UserReward(visitedLocation, map.get(longitude), getRewardPoints(map.get(longitude), user)));
+			Iterator <VisitedLocation> iterator = userLocations.iterator();
+			while (iterator.hasNext()) {
+				VisitedLocation visitedLocation = iterator.next();
+				double longitude = visitedLocation.location.longitude;
+				if (user.getUserRewards().stream().noneMatch(r -> map.containsKey(r.attraction.longitude))) {
+					Attraction attraction = map.get(longitude);
+					if (attraction != null) {
+						if (nearAttraction(visitedLocation, attraction)) {
+							user.addUserReward(new UserReward(visitedLocation, map.get(longitude), getRewardPoints(map.get(longitude), user)));
+						}
 					}
 				}
 			}
-		}
+
 	}
+
 
 	public boolean isWithinAttractionProximity(Attraction attraction, Location location) {
 		return getDistance(attraction, location) > attractionProximityRange ? false : true;
