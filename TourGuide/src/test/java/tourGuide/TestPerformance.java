@@ -1,20 +1,18 @@
 package tourGuide;
 
 import gpsUtil.location.Attraction;
-import gpsUtil.location.VisitedLocation;
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 import rewardCentral.RewardCentral;
 import tourGuide.helper.InternalTestHelper;
 import tourGuide.service.RewardsService;
 import tourGuide.service.TourGuideService;
+import tourGuide.service.UserService;
 import tourGuide.user.User;
 import tourGuide.util.GpsUtil;
 
-import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertTrue;
@@ -40,7 +38,12 @@ public class TestPerformance {
      *     highVolumeGetRewards: 100,000 users within 20 minutes:
 	 *          assertTrue(TimeUnit.MINUTES.toSeconds(20) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
 	 */
-	
+
+
+	/* TODO: Change internal user number up to 100_000
+
+	 */
+
 	@Test
 	public void highVolumeTrackLocation() {
 		GpsUtil gpsUtil = new GpsUtil();
@@ -54,25 +57,7 @@ public class TestPerformance {
 	    StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
 
-		ExecutorService service = Executors.newFixedThreadPool(15);
-
-
-		for(User user : allUsers) {
-			service.execute(() -> tourGuideService.trackUserLocation(user));
-			//tourGuideService.trackUserLocation(user);
-		}
-
-		service.shutdown();
-
-		try {
-			// Wait for all threads to complete
-			service.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-
-			// All threads have completed, display the message
-			System.out.println("All threads have completed.");
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		tourGuideService.trackAllUsersLocation(allUsers);
 
 		stopWatch.stop();
 		tourGuideService.tracker.stopTracking();
@@ -96,30 +81,28 @@ public class TestPerformance {
 		TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
 		
 	    Attraction attraction = gpsUtil.getAttractions().get(0);
-		List <User> allUsers = tourGuideService.getAllUsers();
-		allUsers.forEach(u -> u.addToVisitedLocations(new VisitedLocation(u.getUserId(), attraction, new Date())));
+		//List <User> allUsers = tourGuideService.getAllUsers();
+		//allUsers.forEach(u -> u.addToVisitedLocations(new VisitedLocation(u.getUserId(), attraction, new Date())));
 
-		ExecutorService service = Executors.newFixedThreadPool(15);
+		UserService userService = new UserService();
+		List <User> allUsers = userService.addVisitedLocationsForEachUser(tourGuideService.getAllUsers(), attraction);
 
-	    allUsers.forEach(u -> service.execute(() -> rewardsService.calculateRewards(u)));
+		System.out.println(TimeUnit.MILLISECONDS.toMinutes(stopWatch.getTime()));
+		System.out.println("Done adding visited location.");
 
-		service.shutdown();
+		List <User> users = rewardsService.calculateRewardsForAllUsers(allUsers);
+		System.out.println(TimeUnit.MILLISECONDS.toMinutes(stopWatch.getTime()));
+		System.out.println("Done calculating rewards.");
 
-		try {
-			// Wait for all threads to complete
-			service.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
 
-			// All threads have completed, display the message
-			System.out.println("All threads have completed.");
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		stopWatch.stop();
+		System.out.println("Finished: starting to assert. " + TimeUnit.MILLISECONDS.toMinutes(stopWatch.getTime()));
+		tourGuideService.tracker.stopTracking();
 
-		for(User user : allUsers) {
+		for(User user : users) {
 			assertTrue(user.getUserRewards().size() > 0);
 		}
-		stopWatch.stop();
-		tourGuideService.tracker.stopTracking();
+
 
 		System.out.println("highVolumeGetRewards: Time Elapsed: " + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds."); 
 		assertTrue(TimeUnit.MINUTES.toSeconds(20) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
