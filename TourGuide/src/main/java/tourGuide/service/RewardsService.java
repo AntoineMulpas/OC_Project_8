@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.stereotype.Service;
 
@@ -87,32 +88,6 @@ public class RewardsService {
 		}
 		return user;
 	}
-
-	public void calculateRewards(User user) {
-			List <VisitedLocation> userLocations = new ArrayList <>();
-
-			if (user != null && user.getVisitedLocations().size() != 0) {
-				userLocations.addAll(user.getVisitedLocations());
-			} else {
-				userLocations.add(new VisitedLocation(new UUID(123L, 12L), new Location(12330, 1233), new Date()));
-			}
-
-			Iterator <VisitedLocation> iterator = userLocations.iterator();
-			while (iterator.hasNext()) {
-				VisitedLocation visitedLocation = iterator.next();
-				double longitude = visitedLocation.location.longitude;
-				if (user.getUserRewards().stream().noneMatch(r -> map.containsKey(r.attraction.longitude))) {
-					Attraction attraction = map.get(longitude);
-					if (attraction != null) {
-						if (nearAttraction(visitedLocation, attraction)) {
-							user.addUserReward(new UserReward(visitedLocation, map.get(longitude), getRewardPoints(map.get(longitude), user)));
-						}
-					}
-				}
-			}
-
-	}
-
 
 	public boolean isWithinAttractionProximity(Attraction attraction, Location location) {
 		return getDistance(attraction, location) > attractionProximityRange ? false : true;
