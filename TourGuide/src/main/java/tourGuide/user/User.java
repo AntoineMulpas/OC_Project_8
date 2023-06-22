@@ -24,7 +24,15 @@ public class User {
 		this.phoneNumber = phoneNumber;
 		this.emailAddress = emailAddress;
 	}
-	
+
+	public User(UUID userId, String userName, String phoneNumber, String emailAddress, UserPreferences userPreferences) {
+		this.userId = userId;
+		this.userName = userName;
+		this.phoneNumber = phoneNumber;
+		this.emailAddress = emailAddress;
+		this.userPreferences = userPreferences;
+	}
+
 	public UUID getUserId() {
 		return userId;
 	}
@@ -56,7 +64,7 @@ public class User {
 	public Date getLatestLocationTimestamp() {
 		return latestLocationTimestamp;
 	}
-	
+
 	public void addToVisitedLocations(VisitedLocation visitedLocation) {
 		visitedLocations.add(visitedLocation);
 	}
