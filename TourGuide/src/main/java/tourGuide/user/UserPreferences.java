@@ -19,7 +19,14 @@ public class UserPreferences {
 	
 	public UserPreferences() {
 	}
-	
+
+	public UserPreferences(int tripDuration, int ticketQuantity, int numberOfAdults, int numberOfChildren) {
+		this.tripDuration = tripDuration;
+		this.ticketQuantity = ticketQuantity;
+		this.numberOfAdults = numberOfAdults;
+		this.numberOfChildren = numberOfChildren;
+	}
+
 	public void setAttractionProximity(int attractionProximity) {
 		this.attractionProximity = attractionProximity;
 	}
