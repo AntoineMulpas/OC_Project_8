@@ -32,6 +32,8 @@ public class RewardsService {
 	public RewardsService(GpsUtil gpsUtil, RewardCentral rewardCentral) {
 		this.gpsUtil = gpsUtil;
 		this.rewardsCentral = rewardCentral;
+
+		getAttractions();
 	}
 
 	public void setProximityBuffer(int proximityBuffer) {
@@ -44,8 +46,6 @@ public class RewardsService {
 
 
 	public List<User> calculateRewardsForAllUsers(List<User> userList) {
-		getAttractions();
-
 		List<User> listToReturn = new ArrayList<>();
 
 		ExecutorService service = Executors.newFixedThreadPool(50);
