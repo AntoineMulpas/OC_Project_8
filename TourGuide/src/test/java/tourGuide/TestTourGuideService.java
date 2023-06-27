@@ -16,6 +16,7 @@ import tourGuide.helper.InternalTestHelper;
 import tourGuide.service.RewardsService;
 import tourGuide.service.TourGuideService;
 import tourGuide.user.User;
+import tourGuide.user.UserPreferences;
 import tourGuide.util.GpsUtil;
 import tripPricer.Provider;
 
@@ -109,13 +110,18 @@ public class TestTourGuideService {
 		
 		assertEquals(5, attractions.size());
 	}
-	
+
+	//TODO: Testing TripDeal with custom UserPreferences
+
+	@Test
 	public void getTripDeals() {
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
 		InternalTestHelper.setInternalUserNumber(0);
 		TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
-		
+
+		UserPreferences userPreferences = new UserPreferences();
+
 		User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
 
 		List<Provider> providers = tourGuideService.getTripDeals(user);

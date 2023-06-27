@@ -1,17 +1,17 @@
 package tourGuide;
 
 import gpsUtil.location.Attraction;
+import gpsUtil.location.VisitedLocation;
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 import rewardCentral.RewardCentral;
 import tourGuide.helper.InternalTestHelper;
 import tourGuide.service.RewardsService;
 import tourGuide.service.TourGuideService;
-import tourGuide.service.UserService;
 import tourGuide.user.User;
 import tourGuide.util.GpsUtil;
 
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -81,11 +81,8 @@ public class TestPerformance {
 		TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
 		
 	    Attraction attraction = gpsUtil.getAttractions().get(0);
-		//List <User> allUsers = tourGuideService.getAllUsers();
-		//allUsers.forEach(u -> u.addToVisitedLocations(new VisitedLocation(u.getUserId(), attraction, new Date())));
-
-		UserService userService = new UserService();
-		List <User> allUsers = userService.addVisitedLocationsForEachUser(tourGuideService.getAllUsers(), attraction);
+		List <User> allUsers = tourGuideService.getAllUsers();
+		allUsers.forEach(u -> u.addToVisitedLocations(new VisitedLocation(u.getUserId(), attraction, new Date())));
 
 		System.out.println(TimeUnit.MILLISECONDS.toMinutes(stopWatch.getTime()));
 		System.out.println("Done adding visited location.");

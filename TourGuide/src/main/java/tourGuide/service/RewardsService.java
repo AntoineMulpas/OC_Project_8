@@ -48,7 +48,8 @@ public class RewardsService {
 		getAttractions();
 
 		List<User> listToReturn = new ArrayList<>();
-		ExecutorService service = Executors.newFixedThreadPool(30);
+
+		ExecutorService service = Executors.newFixedThreadPool(50);
 		try {
 		for (User user : userList) {
 			service.execute(() -> {
@@ -79,11 +80,11 @@ public class RewardsService {
 
 		for(VisitedLocation visitedLocation : userLocations) {
 			for(Attraction attraction : attractions) {
-				if(user.getUserRewards().stream().noneMatch(r -> r.attraction.attractionName.equals(attraction.attractionName))) {
-					if(nearAttraction(visitedLocation, attraction)) {
-						user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
+					if(user.getUserRewards().stream().noneMatch(r -> r.attraction.attractionName.equals(attraction.attractionName))) {
+						if(nearAttraction(visitedLocation, attraction)) {
+							user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
+						}
 					}
-				}
 			}
 		}
 		return user;
