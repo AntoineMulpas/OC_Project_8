@@ -90,11 +90,11 @@ public class RewardsService {
 	}
 
 	public boolean isWithinAttractionProximity(Attraction attraction, Location location) {
-		return !(getDistance(attraction, location) > attractionProximityRange);
+		return (getDistance(attraction, location) < attractionProximityRange);
 	}
 
 	private boolean nearAttraction(VisitedLocation visitedLocation, Attraction attraction) {
-		return !(getDistance(attraction, visitedLocation.location) > proximityBuffer);
+		return (getDistance(attraction, visitedLocation.location) < proximityBuffer);
 	}
 
 	private int getRewardPoints(Attraction attraction, User user) {
