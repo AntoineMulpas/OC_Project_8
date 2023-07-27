@@ -110,10 +110,10 @@ public class TourGuideService {
 	 * @param user
 	 * @return
 	 */
-	
+
 	public List<Provider> getTripDeals(User user) {
 		int cumulatativeRewardPoints = user.getUserRewards().stream().mapToInt(UserReward::getRewardPoints).sum();
-		List<Provider> providers = tripPricer.getPrice(tripPricerApiKey, user.getUserId(), user.getUserPreferences().getNumberOfAdults(), 
+		List<Provider> providers = tripPricer.getPrice(tripPricerApiKey, user.getUserId(), user.getUserPreferences().getNumberOfAdults(),
 				user.getUserPreferences().getNumberOfChildren(), user.getUserPreferences().getTripDuration(), cumulatativeRewardPoints);
 		user.setTripDeals(providers);
 		return providers;
@@ -164,14 +164,19 @@ public class TourGuideService {
 	 * @return
 	 */
 
+
 	public List<Attraction> getNearByAttractions(VisitedLocation visitedLocation) {
 		List<Attraction> nearbyAttractions = new ArrayList<>();
-		for(Attraction attraction : gpsUtil.getAttractions()) {
-			if(rewardsService.isWithinAttractionProximity(attraction, visitedLocation.location)) {
-				nearbyAttractions.add(attraction);
-			}
+		Map<Double, Attraction> map = new HashMap<>();
+
+		List <Attraction> attractions = gpsUtil.getAttractions();
+		for(Attraction attraction : attractions) {
+			double distance = rewardsService.isWithinAttractionProximity(attraction, visitedLocation.location);
+			map.put(distance, attraction);
 		}
-		
+		map.keySet().stream().sorted().limit(5).forEach(entry -> {
+			nearbyAttractions.add(map.get(entry));
+		});
 		return nearbyAttractions;
 	}
 

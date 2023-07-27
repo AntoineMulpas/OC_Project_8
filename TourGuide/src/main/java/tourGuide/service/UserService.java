@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 public class UserService {
 
 
+    /*
     public List <User> addVisitedLocationsForEachUser(List<User> userList, Attraction attraction) {
         List<User> listToReturn = new ArrayList <>();
         ExecutorService service = Executors.newFixedThreadPool(15);
@@ -34,7 +35,7 @@ public class UserService {
         return listToReturn;
     }
 
-
+     */
 
 
 }

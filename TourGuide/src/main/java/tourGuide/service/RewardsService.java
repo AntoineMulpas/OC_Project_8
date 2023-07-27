@@ -89,9 +89,15 @@ public class RewardsService {
 		return user;
 	}
 
+
+	public double isWithinAttractionProximity(Attraction attraction, Location location) {
+		return getDistance(attraction, location);
+	}
+	/*
 	public boolean isWithinAttractionProximity(Attraction attraction, Location location) {
 		return (getDistance(attraction, location) < attractionProximityRange);
 	}
+	 */
 
 	private boolean nearAttraction(VisitedLocation visitedLocation, Attraction attraction) {
 		return (getDistance(attraction, visitedLocation.location) < proximityBuffer);
